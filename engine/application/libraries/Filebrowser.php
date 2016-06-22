@@ -582,9 +582,9 @@ class Filebrowser {
   }
 
   public function create_archive($recursive) {
-    $archive = new Archive('zip');
-		$this->add_to_archive($archive, "../".basename($this->folder)."", $recursive);
-    return $archive;
+      $archive = new Archive('zip64');
+      $archive->add($this->fullfolderpath, basename($this->folder), $recursive);
+      return $archive;
   }
 
   private function add_to_archive($archive, $folder, $recursive) {
