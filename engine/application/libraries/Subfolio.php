@@ -689,8 +689,9 @@ class SubfolioFiles extends Subfolio {
 
   public function have_gallery_images()
   {
-    $files   = Subfolio::$filebrowser->get_file_list("img");
-    if (sizeof($files) > 0) {
+    $files = Subfolio::$filebrowser->get_file_list("img");
+    $items = array_merge($files, Subfolio::$filebrowser->get_file_list("psd"));
+    if (sizeof($items) > 0) {
       return true;
     }
     return false;
@@ -705,6 +706,7 @@ class SubfolioFiles extends Subfolio {
     $display_file_extensions = view::get_option('display_file_extensions', true);
 
     $files = Subfolio::$filebrowser->get_file_list("img");
+    $files = array_merge($files, Subfolio::$filebrowser->get_file_list("psd"));
 
     $gallery = array();
     foreach ($files as $file) {
@@ -1065,6 +1067,9 @@ class SubfolioFiles extends Subfolio {
     $folders = Subfolio::$filebrowser->get_folder_list();
     $folders = Subfolio::$filebrowser->sort($folders);
     $files  = Subfolio::$filebrowser->get_file_list();
+    $files = array_filter($files, function ($val) {
+        return $val->kind != "psd";
+    });
     $files  = Subfolio::$filebrowser->sort($files);
 
     $items = array_merge($folders, $files);

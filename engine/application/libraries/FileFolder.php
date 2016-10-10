@@ -140,8 +140,40 @@ class FileFolder {
 	}
 
   public function get_thumbnail_url($listing_mode='list') {
-    if ($this->has_custom_thumbnail()) {
-      return "/directory/".format::urlencode_parts($this->parent)."/-thumbnails-custom/".Filebrowser::double_encode_specialcharacters(urlencode($this->name));
+    if ($this->kind == "psd") {
+      $tmp = preg_replace("/\.psd$/i",".jpg", $this->name);
+      $thumbnail = "-thumbnails/".$tmp;
+
+      if (!file_exists("-thumbnails")) mkdir("-thumbnails", 0755, true);
+
+      $build_thumbnail = false;
+      $temp = $this->name;
+      $this->name = $tmp;
+      if (!$this->has_thumbnail()) {
+          $build_thumbnail = true;
+      }
+      $this->name = $temp;
+
+      if ($build_thumbnail) {
+          $tmpfname = tempnam("/tmp", "subfolio");
+
+          // Generate the thumbnail using ImageMagick
+          $im = new Imagick($this->name);
+          $im->flattenImages();
+          $width = SubfolioTheme::get_option('thumbnail_width', Kohana::config('filebrowser.thumbnail_width'));
+          $height = SubfolioTheme::get_option('thumbnail_height', Kohana::config('filebrowser.thumbnail_height'));
+          $im->thumbnailImage($width, $height);
+          $im->setImageFormat('jpg');
+          $im->writeImage($tmpfname);
+          $im->destroy();
+
+          $image = new Image($tmpfname);
+          $image->save($thumbnail);
+      }
+      return "/directory/".format::urlencode_parts($this->parent)."/-thumbnails/".Filebrowser::double_encode_specialcharacters(urlencode($tmp));
+
+    } else if ($this->has_custom_thumbnail()) {
+        return "/directory/".format::urlencode_parts($this->parent)."/-thumbnails-custom/".Filebrowser::double_encode_specialcharacters(urlencode($this->name));
     } else {
 
       $thumbnail = "-thumbnails/".$this->name;
