@@ -247,6 +247,26 @@ class Subfolio {
       return format::get_rendered_text(file_get_contents(Subfolio::$filebrowser->fullfilepath));
     }
 
+    if ($data == "preview") {
+        $ext = Subfolio::$filekind->get_extension_by_file(Subfolio::$template->content->file->name);
+        if ($ext != "psd") {
+            return "";
+        }
+        $name = preg_replace("/\.psd$/i","-preview.jpg", Subfolio::$template->content->file->name);
+        if (!file_exists(Subfolio::$filebrowser->fullfolderpath."/-thumbnails/".$name)) {
+            $tmpfname = tempnam("/tmp", "subfolio");
+            $im = new Imagick(Subfolio::$template->content->file->name);
+            $im->flattenImages();
+            $im->setImageFormat('jpg');
+            $im->writeImage($tmpfname);
+            $im->destroy();
+
+            $image = new Image($tmpfname);
+            $image->save(Subfolio::$filebrowser->fullfolderpath."/-thumbnails/".$name);
+        }
+        return "/directory/".format::urlencode_parts(Subfolio::$filebrowser->folder)."/-thumbnails/".Filebrowser::double_encode_specialcharacters(urlencode($name));
+    }
+
     return "&nbsp;";
   }
 
